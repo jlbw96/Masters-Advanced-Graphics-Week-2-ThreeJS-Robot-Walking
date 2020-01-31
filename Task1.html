@@ -1,0 +1,234 @@
+<html> 
+	<head> 
+		<title>Robot walking</title> 
+		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+		<style> canvas { width: 100%; height: 100% }</style> 
+		 
+	<script src="js/three.min.js"></script>
+	<script src="js/OrbitControls.js"></script> 
+	</head> 
+	
+	<body>
+	
+<div id="overlaytext" style="position: absolute; top: 700px; left: 100px"> 
+<canvas id="practical-WebGL"  width="500" height="500"></canvas>
+<h2>Task 1 -- portfolio for Coursework 1</h2>
+<p>Coursework 1 includes three tasks for you to complete and write a report on. This is the first task. 
+The deadline for the submission of Coursework 1 is Week 8, Tuesday, 10th March 2020 at 12:00 (noon).</p>
+
+<h3>The simulation of the walking of a robot</h3>
+<p> You are given the code in three.js for the simulation of the walking of a robot around the y axis in the xz plane.
+The robot is modeled using boxes with different sizes in width, height and thickness (depths), making sure that they are configured properly using mainly the translate function from three.js.
+The swing of the feet is applied to the feet and thus can be modeled and implemented in the local foot coordinate system.      
+Make sure that the feet are attached at the proper places at the bottom of the body of the robot.
+The swing should be about the top edges of the feet. While the rotation is about the axis passing through the origin, the relative edges of 
+the feet have to be brought down to pass through the origin. This can be implemented through manipulating the geometry of the feet 
+using the applyMatrix function of THREE.Geometry() and then putting the feet at proper places. 
+The swing angle cannot be too large or too small. 
+If so, then the swing direction should be reversed. </p>
+
+</p>Walking around is implemented through changing the positions of the robots, which can be calculated through trigonometry, 
+based on the way how the robot walks. In this case, the robot walks around the y axis in the xz place and thus, the x and z coordinates of the robot have to be 
+calculated continuously and the robot has to be repositioned accordingly. The rotation angle can be tracked and changed incrementally. 
+</p>
+     
+<p>Read the code carefully and make sure that you understand the roles and functions of each line in the code. </p>
+ 
+ <h3>The tasks to be completed and reported</h3>
+
+ <p>The following is a list of subtasks you need to attempt and complete, if possible, as Task 1 for the building of the portfolio in Coursework 1, 
+for a part assessment of the module:</p> 
+    <ol>
+	<li> Run the code, see the walking robot and learn how the walking of a robot can be simulated.  
+	 <li> Run the code, see the walking robot, watch carefully how the color of the robot body changes around and explain why.  
+     <li> Reduce the four legs to two, and see what happens 
+	 <li> Find proper positions to attach the two legs to the two ends of the center line at the bottom of the body of the robot and see what happens. 
+	 <li> Model the feet of the robot using an L-shape. Instead of modeling the feet of the robot using box, they can be modeled more 
+	 realistically with an L-shape, consisting of a leg and a foot. <font color="red">Hints</font>: In this case, another box may be added to create the plantar of the foot. 
+	 The two boxes, one for leg and one for foot, need to be aligned properly.
+     For the purpose of swinging (walking), you may want to merge the geometries of two boxes together (https://threejs.org/docs/index.html#api/en/core/Geometry) and then treat them as a single geometry like 
+     that of the foot seen in the given code.  	 
+	 <li> Change the speed of the robot when it walks towards and away from you: decrease the speed when the robot walks towards you, 
+	 but increase the speed when the robot walks away from you. <font color="red">Hints</font>: the walking incremental angle dTheta can be defined as a function 
+	 whether the robot is walking towards or away from you.  
+	 </ol>
+	 <b>Bonus question subtask</b>: Can you add three toes to each foot of the robot? <font color="red">Hints</font>: you may want to add three boxes at the front of the L-shaped foot. 
+	 In this case, you may merge them again and make sure that the swing will be about the desired edges of the legs attached to the bottom of the body of the robot.   
+    	 
+ </p>
+ </div>
+  
+	<script>
+	
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera(75,window.innerWidth / window.innerHeight, 0.1,1000);
+		var renderer = new THREE.WebGLRenderer();
+	
+		var axisHelper = new THREE.AxisHelper( 20 ); 
+		scene.add( axisHelper );
+		
+		renderer.setSize(window.innerWidth,window.innerHeight);
+		
+		document.body.appendChild(renderer.domElement);
+		
+		var direction = 1;
+		var rotationX = 0;
+		   // delta angle, in degrees changes angle steve is moving
+		var dx = 0.05;
+		
+		
+        var w = 6; // 12
+        var h = 20; // 40
+        var d = 6; // 12
+		
+
+	
+		//function drawCreeper(w,h,d){
+		
+			var creeper = new THREE.Object3D();
+			var feet = new THREE.Object3D();
+			var upperBody = new THREE.Object3D();
+			
+			var creeperMat = new THREE.MeshNormalMaterial();
+			
+			var headH = 0.3 * h;
+			var headW = w;
+			var headD = d;
+			
+			var bodyH = 0.5 * h;
+			var bodyW = w;
+			var bodyD = 0.33 * d;
+			
+			var footH = 0.2 * h;
+			var footW = 0.5 * w;
+			var footD = 0.33 * d;
+			
+		
+			
+			//the geometry for the front feet will be the same so we can just make it once
+			var footG = new THREE.BoxGeometry(footW,footH,footD);
+			// make sure rotate along the top edge: move down the footG  
+			footG.applyMatrix( new THREE.Matrix4().makeTranslation(0, -(footH * 0.5), (footD * 0.5)) );
+			
+			//foot 1 and 2 are the front feet 
+			var foot1 = new THREE.Mesh(footG,creeperMat);
+			foot1.translateX(-0.5 * footW - 0.1);
+			foot1.translateY(footH);
+			foot1.translateZ((0.5 * bodyD));
+			feet.add(foot1);	
+			
+			var foot2 = new THREE.Mesh(footG,creeperMat);
+			foot2.translateX( 0.5 * footW + 0.1);
+			foot2.translateY(footH);
+			foot2.translateZ((0.5 * bodyD)	);
+			feet.add(foot2);
+			
+			//the geometry for the back feet will be the same so we can just make it once
+			//HOWEVER it is different than the front feet because we want it to rotate
+			//around a different point
+			var footGBack = new THREE.BoxGeometry(footW,footH,footD);
+			footGBack.applyMatrix( new THREE.Matrix4().makeTranslation(0, -(footH * 0.5), -(footD * 0.5)) ); 
+			
+			//foot 3 and 4 are the back feet 
+			var foot3 = new THREE.Mesh(footGBack,creeperMat);
+			foot3.translateX(-0.5 * footW - 0.1);
+			foot3.translateY(footH);
+			foot3.translateZ((-0.5 * bodyD)	);
+			feet.add(foot3);	
+			
+			var foot4 = new THREE.Mesh(footGBack,creeperMat);
+			foot4.translateX( 0.5 * footW + 0.1);
+			foot4.translateY(footH);
+			foot4.translateZ((-0.5 * bodyD)	);
+			feet.add(foot4);
+			
+			creeper.add(feet);
+			
+			var bodyG = new THREE.BoxGeometry(bodyW,bodyH,bodyD);
+ 			var body = new THREE.Mesh(bodyG,creeperMat); 			
+ 			upperBody.add(body);
+ 			
+ 			
+ 			//add a new material for steve's head so that one of the faces has 
+      		//an image mapped on it to differentiate the front
+      		var material1 = new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture('images/grumpy-cat2.jpg') } );
+			var material2 = new THREE.MeshNormalMaterial();
+			var material3 = new THREE.MeshNormalMaterial();
+			var material4 = new THREE.MeshNormalMaterial();
+			var material5 = new THREE.MeshNormalMaterial();
+			var material6 = new THREE.MeshNormalMaterial();
+		
+			var materials = [material5,material2,material3,material4,material1,material6];
+		
+			var headMaterial = new THREE.MeshFaceMaterial( materials );
+ 			
+ 			
+			// head implementation
+ 			var headG = new THREE.BoxGeometry(headW,headH,headD);
+ 			var head = new THREE.Mesh(headG,headMaterial); 			
+			// lift the head above the ground and put it on the top of the body
+			head.translateY((bodyH * 0.5) + (headH * 0.5) + 0.1);
+		
+ 			upperBody.add(head);	
+ 			
+			// lift the upper boyd above the ground and put it onto the foot
+ 			upperBody.translateY(footH + (bodyH * 0.5));
+ 			
+ 			creeper.add(upperBody);	
+			scene.add(creeper);					
+	
+			//}
+			
+
+        //drawCreeper(12,40,12);        
+	    renderer.setClearColor( 0xffffff );
+		camera.position.z = 20;
+		
+		var controls = new THREE.OrbitControls( camera, renderer.domElement );
+		
+		var angle = 0
+		var dTheta = 0.3;
+		
+		function walk() {
+			
+			if (direction == 1){
+				rotationX += dx;
+			}
+			
+			if (direction == -1){
+				rotationX -= dx;
+			}
+			
+			if (rotationX >= (Math.PI / 6) || rotationX <= (-Math.PI / 6)) {
+				console.log("Switch direction");
+				direction = direction * -1; 
+			}
+			
+			foot1.rotation.x = rotationX; //this is in radians!!!
+ 			foot2.rotation.x = -rotationX;
+ 			foot3.rotation.x = rotationX; //this is in radians!!!
+ 			foot4.rotation.x = -rotationX; 	
+ 			
+ 			
+			var theta = angle * (Math.PI/180.0); // theta is in radians
+			creeper.position.x = (20*Math.cos(theta));
+			creeper.position.z = (20*Math.sin(theta));
+			creeper.rotation.y = -1 * theta;  
+			//console.log("steve rotation:" + steve.rotation.y);
+			angle += dTheta;			
+			
+			}
+		
+		function render(){
+			requestAnimationFrame(render);
+			walk();
+			controls.update();
+			renderer.render(scene,camera);
+			}
+			
+		render();					
+	
+	</script> 
+	</body> 
+
+</html>
