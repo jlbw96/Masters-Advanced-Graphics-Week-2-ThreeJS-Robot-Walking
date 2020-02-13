@@ -62,7 +62,8 @@ for a part assessment of the module:</p>
 	
 		var scene = new THREE.Scene();
 		var camera = new THREE.PerspectiveCamera(75,window.innerWidth / window.innerHeight, 0.1,1000);
-		var renderer = new THREE.WebGLRenderer();
+		var renderer = new THREE.WebGLRenderer( {antialias: true});
+		renderer.setPixelRatio( window.devicePixelRatio );
 	
 		var axisHelper = new THREE.AxisHelper( 20 ); 
 		scene.add( axisHelper );
@@ -87,6 +88,7 @@ for a part assessment of the module:</p>
 		
 			var creeper = new THREE.Object3D();
 			var feet = new THREE.Object3D();
+			var arm = new THREE.Object3D();
 			var upperBody = new THREE.Object3D();
 			
 			var creeperMat = new THREE.MeshNormalMaterial();
@@ -103,6 +105,10 @@ for a part assessment of the module:</p>
 			var footW = 0.5 * w;
 			var footD = 0.33 * d;
 			
+			var armH = 0.5 * h;
+			var armW = 0.5 * w;
+			var armD = 0.33 * d;
+			
 		
 			
 			//the geometry for the front feet will be the same so we can just make it once
@@ -113,36 +119,56 @@ for a part assessment of the module:</p>
 			//foot 1 and 2 are the front feet 
 			var foot1 = new THREE.Mesh(footG,creeperMat);
 			foot1.translateX(-0.5 * footW - 0.1);
-			foot1.translateY(footH);
-			foot1.translateZ((0.5 * bodyD));
+			foot1.translateY(footH + 0.8);
+			foot1.translateZ((-0.5 * bodyD));
 			feet.add(foot1);	
 			
 			var foot2 = new THREE.Mesh(footG,creeperMat);
-			foot2.translateX( 0.5 * footW + 0.1);
-			foot2.translateY(footH);
-			foot2.translateZ((0.5 * bodyD)	);
+			foot2.translateX(0.5 * footW -0.1);
+			foot2.translateY(footH + 0.8);
+			foot2.translateZ((-0.5 * bodyD));
 			feet.add(foot2);
 			
 			//the geometry for the back feet will be the same so we can just make it once
 			//HOWEVER it is different than the front feet because we want it to rotate
 			//around a different point
-			var footGBack = new THREE.BoxGeometry(footW,footH,footD);
-			footGBack.applyMatrix( new THREE.Matrix4().makeTranslation(0, -(footH * 0.5), -(footD * 0.5)) ); 
+			//var footGBack = new THREE.BoxGeometry(footW,footH,footD);
+			//footGBack.applyMatrix( new THREE.Matrix4().makeTranslation(0, -(footH * 0.5), -(footD * 0.5)) ); 
 			
 			//foot 3 and 4 are the back feet 
-			var foot3 = new THREE.Mesh(footGBack,creeperMat);
-			foot3.translateX(-0.5 * footW - 0.1);
-			foot3.translateY(footH);
-			foot3.translateZ((-0.5 * bodyD)	);
-			feet.add(foot3);	
+			//var foot3 = new THREE.Mesh(footGBack,creeperMat);
+			//foot3.translateX(-0.5 * footW - 0.1);
+			//foot3.translateY(footH);
+			//foot3.translateZ((-0.5 * bodyD)	);
+			//feet.add(foot3);	
 			
-			var foot4 = new THREE.Mesh(footGBack,creeperMat);
-			foot4.translateX( 0.5 * footW + 0.1);
-			foot4.translateY(footH);
-			foot4.translateZ((-0.5 * bodyD)	);
-			feet.add(foot4);
+			//var foot4 = new THREE.Mesh(footGBack,creeperMat);
+			//foot4.translateX( 0.5 * footW + 0.1);
+			//foot4.translateY(footH);
+			//foot4.translateZ((-0.5 * bodyD)	);
+			//feet.add(foot4);
 			
 			creeper.add(feet);
+			
+			var armG = new THREE.BoxGeometry(armW,armH,armD);
+			// make sure rotate along the top edge: move down the footG  
+			armG.applyMatrix( new THREE.Matrix4().makeTranslation(0, -(armH * 0.5), (armD * 0.5)) );
+			
+			//arm 1 
+			var arm1 = new THREE.Mesh(armG,creeperMat);
+			arm1.translateX(1.5 * armW);
+			arm1.translateY(bodyH * 1.4);
+			arm1.translateZ(-0.5 * bodyD);
+			arm.add(arm1);
+
+			//arm2 
+			var arm2 = new THREE.Mesh(armG,creeperMat);
+			arm2.translateX(-1.5 * armW);
+			arm2.translateY(bodyH * 1.4);
+			arm2.translateZ(-0.5 * bodyD);
+			arm.add(arm2);
+
+			creeper.add(arm);
 			
 			var bodyG = new THREE.BoxGeometry(bodyW,bodyH,bodyD);
  			var body = new THREE.Mesh(bodyG,creeperMat); 			
@@ -151,15 +177,20 @@ for a part assessment of the module:</p>
  			
  			//add a new material for steve's head so that one of the faces has 
       		//an image mapped on it to differentiate the front
-      		var material1 = new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture('images/grumpy-cat2.jpg') } );
-			var material2 = new THREE.MeshNormalMaterial();
-			var material3 = new THREE.MeshNormalMaterial();
-			var material4 = new THREE.MeshNormalMaterial();
-			var material5 = new THREE.MeshNormalMaterial();
-			var material6 = new THREE.MeshNormalMaterial();
-		
-			var materials = [material5,material2,material3,material4,material1,material6];
-		
+      		var headMaterial1 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveFront.png') } );
+			//Right
+			var headMaterial2 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveRight.png') } );
+			//Top
+			var headMaterial3 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveTop.png') } );
+			//Bottom
+			var headMaterial4 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveBottom.png') } );
+			//Left
+			var headMaterial5 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveLeft.png') } );
+			//Back
+			var headMaterial6 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveTop.png') } );
+			//Store all materials in one variable
+			var materials = [headMaterial5,headMaterial2,headMaterial3,headMaterial4,headMaterial1,headMaterial6];
+			//apply materials to the head
 			var headMaterial = new THREE.MeshFaceMaterial( materials );
  			
  			
@@ -206,8 +237,12 @@ for a part assessment of the module:</p>
 			
 			foot1.rotation.x = rotationX; //this is in radians!!!
  			foot2.rotation.x = -rotationX;
- 			foot3.rotation.x = rotationX; //this is in radians!!!
- 			foot4.rotation.x = -rotationX; 	
+ 			//foot3.rotation.x = rotationX; //this is in radians!!!
+ 			//foot4.rotation.x = -rotationX;
+
+			//arms
+			arm1.rotation.x = rotationX;
+			arm2.rotation.x = -rotationX;			
  			
  			
 			var theta = angle * (Math.PI/180.0); // theta is in radians
