@@ -5,7 +5,8 @@
 		<style> canvas { width: 100%; height: 100% }</style> 
 		 
 	<script src="js/three.min.js"></script>
-	<script src="js/OrbitControls.js"></script> 
+	<script src="js/OrbitControls.js"></script>
+	<script src="js/dat.gui.min.js"></script>
 	</head> 
 	
 	<body>
@@ -63,7 +64,11 @@ for a part assessment of the module:</p>
 		var scene = new THREE.Scene();
 		var camera = new THREE.PerspectiveCamera(75,window.innerWidth / window.innerHeight, 0.1,1000);
 		var renderer = new THREE.WebGLRenderer( {antialias: true});
+		var gui;
 		renderer.setPixelRatio( window.devicePixelRatio );
+		
+		var distance = new THREE.Vector3();
+		var prevDistance = new THREE.Vector3();
 	
 		var axisHelper = new THREE.AxisHelper( 20 ); 
 		scene.add( axisHelper );
@@ -72,16 +77,20 @@ for a part assessment of the module:</p>
 		
 		document.body.appendChild(renderer.domElement);
 		
+		createGui();
+		
 		var direction = 1;
 		var rotationX = 0;
 		   // delta angle, in degrees changes angle steve is moving
 		var dx = 0.05;
+		//Higher = Faster walk speed. Lower = Slower walk Speed
+		var dTheta = 2;
 		
 		
         var w = 6; // 12
         var h = 20; // 40
         var d = 6; // 12
-		
+		var cameraPos;
 
 	
 		//function drawCreeper(w,h,d){
@@ -177,17 +186,23 @@ for a part assessment of the module:</p>
  			
  			//add a new material for steve's head so that one of the faces has 
       		//an image mapped on it to differentiate the front
-      		var headMaterial1 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveFront.png') } );
+      		var headMaterial1 = new THREE.MeshNormalMaterial();
+			//new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveFront.png') } );
 			//Right
-			var headMaterial2 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveRight.png') } );
+			var headMaterial2 = new THREE.MeshNormalMaterial();
+			//new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveRight.png') } );
 			//Top
-			var headMaterial3 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveTop.png') } );
+			var headMaterial3 = new THREE.MeshNormalMaterial();
+			//new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveTop.png') } );
 			//Bottom
-			var headMaterial4 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveBottom.png') } );
+			var headMaterial4 = new THREE.MeshNormalMaterial();
+			//new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveBottom.png') } );
 			//Left
-			var headMaterial5 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveLeft.png') } );
+			var headMaterial5 = new THREE.MeshNormalMaterial();
+			//new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveLeft.png') } );
 			//Back
-			var headMaterial6 = new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveTop.png') } );
+			var headMaterial6 = new THREE.MeshNormalMaterial();
+			//new THREE.MeshBasicMaterial( {map: THREE.ImageUtils.loadTexture('images/steveTop.png') } );
 			//Store all materials in one variable
 			var materials = [headMaterial5,headMaterial2,headMaterial3,headMaterial4,headMaterial1,headMaterial6];
 			//apply materials to the head
@@ -218,7 +233,46 @@ for a part assessment of the module:</p>
 		var controls = new THREE.OrbitControls( camera, renderer.domElement );
 		
 		var angle = 0
-		var dTheta = 0.3;
+		
+		function createGui()
+		{
+		gui = new dat.GUI();
+		
+		var parameters = {
+		//dx: 0.05,
+		//dtheta: 0.3
+		};
+		
+		//gui.add(parameters, 'dx').min(0.01).max(5).step(0.01)
+		//.name('Direction X')
+		//.onChange(render);
+		//gui.add(parameters, 'dtheta').min(0.3).max(5).step(0.01)
+		//.name('Angle:')
+		//.onChange(render);
+		//gui.open();	
+		}
+		
+		function changeSpeed()
+		{
+			distance = new THREE.Vector3(camera.position.distanceTo(creeper.position));
+			//console.log(distance);
+			
+		if (distance.x >= prevDistance.x)
+		{
+			
+			dTheta = 2;
+			prevDistance = distance;
+			//console.log(dTheta);
+			//console.log("Greater: " + prevDistance);
+		}
+		if (distance.x < prevDistance.x)
+		{
+			dTheta = 5;
+			prevDistance = distance;
+			//console.log(dtheta);
+			//console.log("Shorter: " + prevDistance);
+		}
+	}
 		
 		function walk() {
 			
@@ -242,26 +296,26 @@ for a part assessment of the module:</p>
 
 			//arms
 			arm1.rotation.x = rotationX;
-			arm2.rotation.x = -rotationX;			
- 			
+			arm2.rotation.x = -rotationX;
  			
 			var theta = angle * (Math.PI/180.0); // theta is in radians
 			creeper.position.x = (20*Math.cos(theta));
 			creeper.position.z = (20*Math.sin(theta));
 			creeper.rotation.y = -1 * theta;  
-			//console.log("steve rotation:" + steve.rotation.y);
+			//console.log("robot rotation:" + creeper.rotation.y);
 			angle += dTheta;			
 			
 			}
 		
 		function render(){
 			requestAnimationFrame(render);
+			changeSpeed();
 			walk();
 			controls.update();
 			renderer.render(scene,camera);
 			}
 			
-		render();					
+		render();	
 	
 	</script> 
 	</body> 
